@@ -1,0 +1,300 @@
+================================================================
+  FARMÁCIA FÁCIL — APP VENDEDOR
+  RELATÓRIO DE DESENVOLVIMENTO
+  Data: Outubro 2026
+================================================================
+
+----------------------------------------------------------------
+1. INFORMAÇÕES DO PROJETO
+----------------------------------------------------------------
+
+Nome do app     : Farmácia Fácil — Painel do Vendedor
+Package name    : farmacia_facil_vendedor
+Pasta local     : C:\Users\YYYY\Documents\farmacia-facil-vendedor
+Repositório     : A criar no GitHub
+Status atual    : Em construção — estrutura base criada
+Plataforma alvo : Web (Chrome) — Android na Fase seguinte
+
+
+----------------------------------------------------------------
+2. TECNOLOGIAS UTILIZADAS
+----------------------------------------------------------------
+
+Flutter         : 3.38.5
+Dart            : 3.10.4
+Estado          : Riverpod 3.3.2
+Navegação       : GoRouter 17.5.0
+Banco de dados  : Cloud Firestore (Firebase)
+Autenticação    : Firebase Auth
+Armazenamento   : Shared Preferences (sessão local)
+Datas           : Intl 0.20.3
+
+Firebase compartilhado com o app do usuário:
+  Projeto : farmacia-facil-b980c
+  Console : https://console.firebase.google.com
+
+
+----------------------------------------------------------------
+3. ESTRUTURA DE PASTAS
+----------------------------------------------------------------
+
+lib/
+├── main.dart                          Ponto de entrada
+├── app/
+│   └── theme.dart                     Tema azul escuro
+├── models/
+│   ├── vendor_model.dart              Dados da farmácia
+│   ├── product_model.dart             Dados dos produtos
+│   └── order_model.dart               Dados dos pedidos
+├── providers/
+│   ├── auth_provider.dart             Auth e cadastro
+│   ├── orders_provider.dart           Pedidos
+│   └── products_provider.dart         Produtos
+├── screens/
+│   ├── auth/
+│   │   ├── splash_screen.dart         Tela inicial
+│   │   ├── login_screen.dart          Login
+│   │   ├── register_screen.dart       Cadastro da farmácia
+│   │   └── pending_screen.dart        Aguardando aprovação
+│   ├── dashboard/
+│   │   └── dashboard_screen.dart      Painel principal
+│   ├── orders/                        A criar
+│   ├── products/                      A criar
+│   ├── pharmacy/                      A criar
+│   └── shared/                        A criar
+└── services/                          A criar
+
+
+----------------------------------------------------------------
+4. ARQUIVOS CRIADOS — DETALHES
+----------------------------------------------------------------
+
+── MODELOS ──────────────────────────────────────────────────
+
+vendor_model.dart
+  Representa a farmácia/vendedor no sistema.
+  Campos: id, name, ownerName, email, phone, address,
+          city, state, zipCode, openingHours, hasDelivery,
+          isApproved, isActive, createdAt
+  Métodos: toMap(), fromMap(), copyWith(), statusLabel
+
+product_model.dart
+  Representa um produto/medicamento da farmácia.
+  Campos: id, pharmacyId, name, description, category,
+          price, stock, requiresPrescription, isActive, createdAt
+  Métodos: toMap(), fromMap(), copyWith(), formattedPrice
+  Getters: isAvailable (ativo + estoque > 0)
+
+order_model.dart
+  Representa um pedido feito pelo usuário.
+  Classes: OrderItem, OrderModel, enum OrderStatus
+  Status disponíveis:
+    pending     → Aguardando confirmação
+    confirmed   → Confirmado
+    preparing   → Em preparação
+    ready       → Pronto
+    delivering  → Saiu para entrega
+    delivered   → Entregue
+    cancelled   → Cancelado
+
+── PROVIDERS ─────────────────────────────────────────────────
+
+auth_provider.dart (VendorAuthNotifier)
+  Gerencia login, cadastro e sessão do vendedor.
+  Estado: VendorAuthState (vendor, isLoading, errorMessage)
+  Getters: isLoggedIn, isApproved, isPending
+  Métodos:
+    register() → cria conta com isApproved = false
+    login()    → autentica e carrega dados do Firestore
+    logout()   → desloga
+    refreshVendorStatus() → verifica se foi aprovado
+
+orders_provider.dart (OrdersNotifier)
+  Gerencia pedidos da farmácia.
+  Métodos:
+    loadOrders()           → busca pedidos no Firestore
+    updateOrderStatus()    → atualiza status do pedido
+    byStatus()             → filtra por status
+  Getters: todayOrders, todayRevenue
+
+products_provider.dart (ProductsNotifier)
+  Gerencia produtos da farmácia.
+  Métodos:
+    loadProducts()   → busca produtos no Firestore
+    addProduct()     → adiciona produto
+    updateProduct()  → edita produto
+    updateStock()    → atualiza estoque
+    deleteProduct()  → remove produto
+
+── TELAS ─────────────────────────────────────────────────────
+
+splash_screen.dart
+  Tela inicial com logo e animação de fade.
+  Redireciona para: login | pending | dashboard
+  Cor: azul escuro (diferente do app usuário que é verde)
+
+login_screen.dart
+  Login com e-mail e senha.
+  Após login verifica se está aprovado:
+    isApproved = true  → vai para dashboard
+    isApproved = false → vai para pending
+
+register_screen.dart
+  Cadastro completo da farmácia.
+  Campos: nome da farmácia, responsável, e-mail, senha,
+          telefone, endereço, cidade, UF, CEP
+  Aviso visível: "conta passará por aprovação"
+  Após cadastro: vai para pending
+
+pending_screen.dart
+  Tela de espera enquanto o admin não aprovou.
+  Mostra nome da farmácia cadastrada.
+  Botão "Verificar status" chama refreshVendorStatus()
+  Botão "Sair da conta"
+
+dashboard_screen.dart
+  Painel principal do vendedor.
+  Seções:
+    - Resumo do dia (novos pedidos, pedidos hoje, faturamento)
+    - Alerta de pedidos pendentes
+    - Ações rápidas (Pedidos, Produtos, Minha Farmácia, Relatórios)
+    - Últimos 5 pedidos com status colorido
+  Ação de logout no AppBar
+  Pull-to-refresh para atualizar pedidos
+
+
+----------------------------------------------------------------
+5. FUNCIONALIDADES — STATUS
+----------------------------------------------------------------
+
+CONCLUÍDO:
+  [OK] Estrutura do projeto criada
+  [OK] Dependências instaladas (Firebase, Riverpod, GoRouter)
+  [OK] Modelo completo de dados (vendor, product, order)
+  [OK] Provider de autenticação com Firebase
+  [OK] Provider de pedidos com Firestore
+  [OK] Provider de produtos com Firestore
+  [OK] Tela splash
+  [OK] Tela de login
+  [OK] Tela de cadastro da farmácia
+  [OK] Tela de aguardando aprovação
+  [OK] Dashboard com resumo do dia
+
+FALTA CRIAR:
+  [ ] Tela de pedidos (lista completa + filtros por status)
+  [ ] Tela de detalhe do pedido (aceitar, recusar, atualizar)
+  [ ] Tela de produtos (lista + adicionar + editar + estoque)
+  [ ] Tela de perfil da farmácia (editar dados)
+  [ ] Barra de navegação lateral (main_shell para web)
+  [ ] routes.dart (configuração de rotas)
+  [ ] main.dart atualizado com Firebase
+  [ ] firebase_options.dart (gerado pelo FlutterFire CLI)
+  [ ] .gitignore configurado
+  [ ] Repositório no GitHub
+  [ ] Deploy no GitHub Pages
+
+
+----------------------------------------------------------------
+6. FLUXO DE APROVAÇÃO DO VENDEDOR
+----------------------------------------------------------------
+
+1. Vendedor acessa o app do vendedor
+2. Clica em "Cadastrar farmácia"
+3. Preenche todos os dados
+4. Sistema cria conta no Firebase Auth
+5. Salva dados no Firestore com isApproved = false
+6. Vendedor vai para tela "Aguardando aprovação"
+7. Admin acessa o painel admin
+8. Vê a farmácia na lista de "Pendentes"
+9. Clica em "Aprovar"
+10. Sistema atualiza isApproved = true no Firestore
+11. Vendedor clica "Verificar status" ou entra novamente
+12. App detecta isApproved = true
+13. Vendedor acessa o dashboard normalmente
+
+
+----------------------------------------------------------------
+7. ESTRUTURA DO FIRESTORE PARA O VENDEDOR
+----------------------------------------------------------------
+
+pharmacies/
+  {pharmacyId}/          ← mesmo UID do Firebase Auth
+    name                 Nome da farmácia
+    ownerName            Nome do responsável
+    email
+    phone
+    address, city, state, zipCode
+    openingHours
+    hasDelivery
+    isApproved           false até admin aprovar
+    isActive
+    createdAt
+
+    products/            Sub-coleção de produtos
+      {productId}/
+        name, description, category
+        price, stock
+        requiresPrescription
+        isActive, createdAt
+
+orders/
+  {orderId}/             Pedidos de todos os usuários
+    userId, userName
+    pharmacyId           Liga o pedido à farmácia
+    status               pending|confirmed|preparing|...
+    items[]              Lista de produtos
+    totalPrice
+    deliveryAddress
+    isDelivery
+    createdAt, updatedAt
+
+
+----------------------------------------------------------------
+8. PRÓXIMOS PASSOS IMEDIATOS
+----------------------------------------------------------------
+
+1. Criar telas restantes
+   - orders_screen.dart
+   - order_detail_screen.dart
+   - products_screen.dart
+   - add_edit_product_screen.dart
+   - pharmacy_screen.dart
+
+2. Criar navegação
+   - main_shell.dart (menu lateral para web)
+   - routes.dart
+
+3. Conectar ao Firebase
+   - Rodar: flutterfire configure --project=farmacia-facil-b980c
+   - Gera: lib/firebase_options.dart
+
+4. Atualizar main.dart
+   - Inicializar Firebase
+   - Configurar Riverpod
+   - Usar appRouter
+
+5. Criar repositório no GitHub
+   - farmacia-facil-vendedor
+
+6. Configurar deploy no GitHub Pages
+
+
+----------------------------------------------------------------
+9. IDENTIDADE VISUAL
+----------------------------------------------------------------
+
+Cor principal  : Azul escuro #1565C0
+Cor secundária : Azul médio  #1976D2
+Accent         : Azul claro  #42A5F5
+Fundo          : Cinza claro #F5F7FA
+Sucesso        : Verde       #2E7D32
+Alerta         : Laranja     #F57C00
+Erro           : Vermelho    #D32F2F
+
+Diferença visual intencional do app usuário (verde)
+para facilitar a identificação de cada plataforma.
+
+
+================================================================
+  FIM DO RELATÓRIO DO APP VENDEDOR
+================================================================
