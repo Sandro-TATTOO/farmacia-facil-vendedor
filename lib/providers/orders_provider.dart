@@ -22,12 +22,15 @@ class OrdersNotifier extends Notifier<List<OrderModel>> {
       final snapshot = await _firestore
           .collection('orders')
           .where('pharmacyId', isEqualTo: _pharmacyId)
-          .orderBy('createdAt', descending: true)
           .get();
 
-      state = snapshot.docs.map((doc) {
+      final orders = snapshot.docs.map((doc) {
         return OrderModel.fromMap({'id': doc.id, ...doc.data()});
       }).toList();
+
+      // Ordena localmente por data (mais recente primeiro)
+      orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      state = orders;
 
       _log('Pedidos carregados: ${state.length}');
     } catch (e) {
